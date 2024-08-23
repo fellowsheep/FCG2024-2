@@ -11,3 +11,6 @@ Se o seu ambiente de desenvolvimento for diferente, você deve baixar:
 Para configurar os projetos em sua máquina utilizando Visual Studio Code, vá para os link:
 
 - [Visual Studio Code](VSCode-SETUP.md)
+
+## Novidade!
+- [Template para criar o README.md dos projetos](TemplateREADME.md)
