@@ -1,4 +1,4 @@
-# Fundamentos de Computação Gráfica 2024/2 
+# Fundamentos de Computação Gráfica 2024/2
 
 Repositório de exemplos de códigos em C++ utilizando OpenGL moderna (3.3+) criado para a Atividade Acadêmica Fundamentos de Computação Gráfica do curso de graduação em Jogos Digitais da Unisinos.
 
