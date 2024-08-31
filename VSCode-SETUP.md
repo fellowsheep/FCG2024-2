@@ -27,6 +27,8 @@
      
     `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`
 
+   - Na primeira escolha que o terminal apresentar, apenas aperte `ENTER`, na segunda, digite `Y`. Vai levar uns minutinhos pra ele instalar tudo.
+
 ### Configurando a variável de ambiente no Sistema Operacional (Windows)
 
 4 - Esse passo é necessário para que, de qualquer diretório, o sistema operacional encontre o executável do compilador. A forma mais simples de fazer isso (se você tiver permissão de administrador do sistema) é a seguinte:
