@@ -28,6 +28,7 @@ using namespace glm;
 
 #include <cmath>
 
+enum directions {NONE, UP, DOWN, LEFT, RIGHT};
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -35,6 +36,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 // Protótipos das funções
 int setupShader();
 int setupGeometry();
+
+void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle, vec3 color, vec3 axis = (vec3(0.0, 0.0, 1.0)));
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -58,6 +61,9 @@ const GLchar* fragmentShaderSource = "#version 400\n"
 "{\n"
 "color = inputColor;\n"
 "}\n\0";
+
+//Globais
+int dir = NONE;
 
 // Função MAIN
 int main()
@@ -124,12 +130,10 @@ int main()
 
 	//Matriz de modelo: transformações na geometria (objeto)
 	mat4 model = mat4(1); //matriz identidade
-	//Translação
-	model = translate(model,vec3(400.0,300.0,0.0));
-	//Escala
-	model = scale(model,vec3(300.0,300.0,1.0));
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
 
+	vec3 position = vec3(400.0, 300.0, 0.0);
+	float vel = 2.0;
 
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
@@ -137,38 +141,42 @@ int main()
 		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as funções de callback correspondentes
 		glfwPollEvents();
 
-		//Matriz de modelo: transformações na geometria (objeto)
-		model = mat4(1); //matriz identidade
-		//Translação
-		model = translate(model,vec3(400.0,300.0,0.0));
-		//Escala
-		model = scale(model,vec3(abs(cos(glfwGetTime())) * 300.0,abs(cos(glfwGetTime())) * 300.0,1.0));
-		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-
-
 		// Limpa o buffer de cor
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glLineWidth(10);
-		glPointSize(20);
-
 		glBindVertexArray(VAO); //Conectando ao buffer de geometria
-
-		glUniform4f(colorLoc, 0.0f, 0.0f, abs(cos(glfwGetTime())) , 1.0f); //enviando cor para variável uniform inputColor
-		// Chamada de desenho - drawcall
-		// Poligono Preenchido - GL_TRIANGLES
-		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
-		//Desenho com contorno (linhas)
-		//glUniform4f(colorLoc, 1.0f, 0.0f, 1.0f, 1.0f); //enviando cor para variável uniform inputColor
-		//glDrawArrays(GL_LINE_LOOP, 0, 3); //Desenha T0
-		//glDrawArrays(GL_LINE_LOOP, 3, 3); //Desenha T1
+		cout << dir << endl;
 
-		//Desenho só dos pontos (vértices)
-		//glUniform4f(colorLoc, 1.0f, 1.0f, 0.0f, 1.0f); //enviando cor para variável uniform inputColor
-		//glDrawArrays(GL_POINTS, 0, 6); 
+		if (dir == UP)
+		{
+			//cout << "UP" << endl;
+			position.y += vel;
+		}
+		else if (dir == DOWN)
+		{
+			//cout << "DOWN" << endl;
+			position.y -= vel;
+		}
+		else if (dir == LEFT)
+		{
+			//cout << "LEFT" << endl;
+			position.x -= vel;
+		}
+		else if (dir == RIGHT)
+		{
+			//cout << "RIGHT" << endl;
+			position.x += vel;
+		}
+		else
+		{
+			//cout << "NONE" << endl;
+		}
 
+
+		//Primeiro Triângulo
+		drawTriangle(shaderID, VAO,position,vec3(100.0,100.0,1.0),0.0,vec3(0.0,0.0,1.0));
 
 		glBindVertexArray(0); //Desconectando o buffer de geometria
 
@@ -187,8 +195,31 @@ int main()
 // ou solta via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	cout << "ENTROU!" << endl;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (key == GLFW_KEY_W || key == GLFW_KEY_UP)
+	{
+		dir = UP;
+	}
+	else if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN)
+	{
+		dir = DOWN;
+	}
+	else if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT)
+	{
+		dir = LEFT;
+	}
+	else if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT)
+	{
+		dir = RIGHT;
+	}
+	
+	if (action == GLFW_RELEASE)
+	{
+		dir = NONE;
+	}
 }
 
 //Esta função está basntante hardcoded - objetivo é compilar e "buildar" um programa de
@@ -290,4 +321,24 @@ int setupGeometry()
 
 	return VAO;
 }
+
+void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle, vec3 color, vec3 axis)
+{
+	//Matriz de modelo: transformações na geometria (objeto)
+	mat4 model = mat4(1); //matriz identidade
+	//Translação
+	model = translate(model,position);
+	//Rotação 
+	model = rotate(model,radians(angle),axis);
+	//Escala
+	model = scale(model,dimensions);
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+
+	glUniform4f(glGetUniformLocation(shaderID, "inputColor"), color.r, color.g, color.b , 1.0f); //enviando cor para variável uniform inputColor
+		// Chamada de desenho - drawcall
+		// Poligono Preenchido - GL_TRIANGLES
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+}
+
 
