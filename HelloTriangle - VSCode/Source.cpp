@@ -19,6 +19,9 @@ using namespace std;
 // GLFW
 #include <GLFW/glfw3.h>
 
+//STB_IMAGE 
+#include <
+
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);

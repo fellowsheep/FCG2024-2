@@ -54,7 +54,7 @@ vec3 dir = vec3(0.0, -1.0, 0.0); // Vetor direção (do objeto para o mouse)
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 int setupShader();           // Função para configurar os shaders
 int setupGeometry();         // Função para configurar a geometria (triângulo)
-void drawGeometry(GLuint shaderID, GLuint VAO, int nVertices, vec3 position, vec3 dimensions, float angle, vec3 color, GLuint drawingMode = GL_TRIANGLES, vec3 axis = vec3(0.0, 0.0, 1.0));
+void drawGeometry(GLuint shaderID, GLuint VAO, int nVertices, vec3 position, vec3 dimensions, float angle, vec3 color, GLuint drawingMode = GL_TRIANGLES, int offset = 0, vec3 axis = vec3(0.0, 0.0, 1.0));
 
 int main() {
     // Inicializa GLFW e configurações de versão do OpenGL
@@ -240,7 +240,7 @@ int setupGeometry() {
 }
 
 // Função para desenhar o objeto
-void drawGeometry(GLuint shaderID, GLuint VAO, int nVertices, vec3 position, vec3 dimensions, float angle, vec3 color, GLuint drawingMode, vec3 axis) {
+void drawGeometry(GLuint shaderID, GLuint VAO, int nVertices, vec3 position, vec3 dimensions, float angle, vec3 color, GLuint drawingMode, int offset, vec3 axis) {
     glBindVertexArray(VAO); // Vincula o VAO
 
     // Aplica as transformações de translação, rotação e escala
@@ -256,7 +256,7 @@ void drawGeometry(GLuint shaderID, GLuint VAO, int nVertices, vec3 position, vec
     glUniform4f(glGetUniformLocation(shaderID, "inputColor"), color.r, color.g, color.b, 1.0f);
 
     // Desenha o objeto
-    glDrawArrays(drawingMode, 0, nVertices);
+    glDrawArrays(drawingMode, offset, nVertices);
 
     // Desvincula o VAO
     glBindVertexArray(0);
