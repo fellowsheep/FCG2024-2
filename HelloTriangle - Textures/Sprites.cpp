@@ -30,15 +30,27 @@ using namespace glm;
 
 #include <cmath>
 
+
+//Estrutura de dados das Sprites
+struct Sprite 
+{
+	GLfloat VAO; //id do buffer de geometria
+	GLfloat texID; //id da textura
+	vec3 pos, dimensions;
+	float angle;
+
+};
+
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
 // Protótipos das funções
 int setupShader();
 int setupGeometry();
+int setupSprite();
 GLuint loadTexture(string filePath, int &width, int &height);
 
-void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle, vec3 color, vec3 axis = (vec3(0.0, 0.0, 1.0)));
+void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle=0.0f, vec3 color = vec3(0,0,0), vec3 axis = (vec3(0.0, 0.0, 1.0)));
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -54,7 +66,7 @@ out vec2 texCoord;
 void main()
 {
    	gl_Position = projection * model * vec4(position.x, position.y, position.z, 1.0);
-	texCoord = texc;
+	texCoord = vec2(texc.s,1.0-texc.t);
 })";
 
 // Código fonte do Fragment Shader (em GLSL): ainda hardcoded
@@ -114,12 +126,23 @@ int main()
 	// Compilando e buildando o programa de shader
 	GLuint shaderID = setupShader();
 
-	// Gerando um buffer simples, com a geometria de um triângulo
-	GLuint VAO = setupGeometry();
+	//Criação dos sprites - objetos da cena
+	Sprite background, character;
 
-	// Carregando uma textura e armazenando seu id
+	character.VAO = setupSprite();
+	// Carregando uma textura do personagem e armazenando seu id
 	int imgWidth, imgHeight;
-	GLuint texID = loadTexture("../Textures/pixelWall.png",imgWidth,imgHeight);
+	character.texID = loadTexture("../Textures/Characters/Elf_01__IDLE_009.png",imgWidth,imgHeight);
+	character.pos = vec3(400,100,0);
+	character.dimensions = vec3(imgWidth*0.3,imgHeight*0.3,1.0);
+	character.angle = 0.0;
+
+	background.VAO = setupSprite();
+	// Carregando uma textura do personagem e armazenando seu id
+	background.texID = loadTexture("../Textures/Backgrounds/Preview 3.png",imgWidth,imgHeight);
+	background.pos = vec3(400,300,0);
+	background.dimensions = vec3(imgWidth*0.5,imgHeight*0.5,1.0);
+	background.angle = 0.0;
 
 	glUseProgram(shaderID);
 
@@ -139,6 +162,14 @@ int main()
 	mat4 model = mat4(1); // matriz identidade
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
 
+	//Habilitando o teste de profundidade
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
+
+	//Habilitando a transparência
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
@@ -147,19 +178,17 @@ int main()
 
 		// Limpa o buffer de cor
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // cor de fundo
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindVertexArray(VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, texID); //conectando com o buffer de textura que será usado no draw
+		glBindVertexArray(background.VAO); // Conectando ao buffer de geometria
+		glBindTexture(GL_TEXTURE_2D, background.texID); //conectando com o buffer de textura que será usado no draw
+		// Primeiro Sprite - vamos depois adaptar a função para drawSprite
+		drawTriangle(shaderID, background.VAO, background.pos, background.dimensions);
 
-		// Primeiro Triângulo
-		drawTriangle(shaderID, VAO, vec3(100.0, 500.0, 0.0), vec3(100.0, 100.0, 1.0), 0.0, vec3(0.0, 0.0, 1.0));
-
-		// Segundo Triângulo
-		drawTriangle(shaderID, VAO, vec3(350.0, 300.0, 0.0), vec3(200.0, 200.0, 1.0), 180.0, vec3(0.0, 1.0, 0.0));
-
-		// Terceiro Triângulo
-		drawTriangle(shaderID, VAO, vec3(600.0, 200.0, 0.0), vec3(300.0, 300.0, 1.0), 0.0, vec3(1.0, 0.0, 0.0));
+		glBindVertexArray(character.VAO); // Conectando ao buffer de geometria
+		glBindTexture(GL_TEXTURE_2D, character.texID); //conectando com o buffer de textura que será usado no draw
+		// Primeiro Sprite - vamos depois adaptar a função para drawSprite
+		drawTriangle(shaderID, character.VAO, character.pos, character.dimensions);
 
 		glBindVertexArray(0); // Desconectando o buffer de geometria
 
@@ -167,7 +196,7 @@ int main()
 		glfwSwapBuffers(window);
 	}
 	// Pede pra OpenGL desalocar os buffers
-	glDeleteVertexArrays(1, &VAO);
+	//glDeleteVertexArrays(1, character.VAO);
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
@@ -292,6 +321,64 @@ int setupGeometry()
 	return VAO;
 }
 
+//Inicialização da geometria de um sprite
+int setupSprite()
+{
+	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
+	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
+	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
+	// Pode ser arazenado em um VBO único ou em VBOs separados
+	GLfloat vertices[] = {
+		// x    y    z   s    t 
+		// T0
+		-0.5,  0.5, 0.0, 0.0, 1.0,    // v0
+		-0.5, -0.5, 0.0, 0.0, 0.0,    // v1
+		 0.5,  0.5, 0.0, 1.0, 1.0, 	  // v2
+		// T1
+		-0.5, -0.5, 0.0, 0.0, 0.0,    // v1
+		 0.5,  0.5, 0.0, 1.0, 1.0, 	  // v2
+		 0.5, -0.5, 0.0, 1.0, 0.0  	  // v3
+	};
+
+	GLuint VBO, VAO;
+	// Geração do identificador do VBO
+	glGenBuffers(1, &VBO);
+	// Faz a conexão (vincula) do buffer como um buffer de array
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Envia os dados do array de floats para o buffer da OpenGl
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Geração do identificador do VAO (Vertex Array Object)
+	glGenVertexArrays(1, &VAO);
+	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
+	// e os ponteiros para os atributos
+	glBindVertexArray(VAO);
+	// Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo), indicando:
+	//  Localização no shader * (a localização dos atributos devem ser correspondentes no layout especificado no vertex shader)
+	//  Numero de valores que o atributo tem (por ex, 3 coordenadas xyz)
+	//  Tipo do dado
+	//  Se está normalizado (entre zero e um)
+	//  Tamanho em bytes
+	//  Deslocamento a partir do byte zero
+
+	//Atributo posição - coord x, y, z - 3 valores
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
+	glEnableVertexAttribArray(0);
+
+	//Atributo coordenada de textura - coord s, t - 2 valores
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3* sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice
+	// atualmente vinculado - para que depois possamos desvincular com segurança
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
+	glBindVertexArray(0);
+
+	return VAO;
+}
+
 GLuint loadTexture(string filePath, int &width, int &height)
 {
 	GLuint texID; // id da textura a ser carregada
@@ -351,5 +438,5 @@ void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, f
 	glUniform4f(glGetUniformLocation(shaderID, "inputColor"), color.r, color.g, color.b, 1.0f); // enviando cor para variável uniform inputColor
 																								//  Chamada de desenho - drawcall
 																								//  Poligono Preenchido - GL_TRIANGLES
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
