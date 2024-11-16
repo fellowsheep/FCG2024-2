@@ -38,22 +38,36 @@ struct Sprite
 	GLfloat texID; //id da textura
 	vec3 pos, dimensions;
 	float angle;
+	//Para a animação da spritesheet
+	int nAnimations, nFrames;
+	int iAnimation, iFrame;
+	float ds, dt;
 
 };
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
-// Protótipos das funções
+// Protótipos (ou Cabeçalhos) das funções
 int setupShader();
 int setupGeometry();
 int setupSprite();
+Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations=1, int nFrames=1, float angle=0.0);
 GLuint loadTexture(string filePath, int &width, int &height);
 
 void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle=0.0f, vec3 color = vec3(0,0,0), vec3 axis = (vec3(0.0, 0.0, 1.0)));
+void drawSprite(GLuint shaderID, Sprite &sprite);
+void updateSprite(GLuint shaderID, Sprite &sprite);
+
+
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+// Variáveis globais
+float FPS = 12.0f;
+float lastTime = 0;
+
 
 // Código fonte do Vertex Shader (em GLSL): ainda hardcoded
 const GLchar *vertexShaderSource = R"(
@@ -74,10 +88,11 @@ const GLchar *fragmentShaderSource = R"(
 #version 400
 in vec2 texCoord;
 uniform sampler2D texBuff;
+uniform vec2 offsetTex;
 out vec4 color;
 void main()
 {
-	color = texture(texBuff,texCoord);
+	color = texture(texBuff, texCoord + offsetTex);
 })";
 
 // Função MAIN
@@ -128,21 +143,14 @@ int main()
 
 	//Criação dos sprites - objetos da cena
 	Sprite background, character;
+	int imgWidth, imgHeight, texID;
 
-	character.VAO = setupSprite();
 	// Carregando uma textura do personagem e armazenando seu id
-	int imgWidth, imgHeight;
-	character.texID = loadTexture("../Textures/Characters/Elf_01__IDLE_009.png",imgWidth,imgHeight);
-	character.pos = vec3(400,100,0);
-	character.dimensions = vec3(imgWidth*0.3,imgHeight*0.3,1.0);
-	character.angle = 0.0;
+	texID = loadTexture("../Textures/Characters/Female 23-1.png",imgWidth,imgHeight);
+	character = initializeSprite(texID, vec3(imgWidth*3,imgHeight*3,1.0),vec3(400,100,0),4,3);
 
-	background.VAO = setupSprite();
-	// Carregando uma textura do personagem e armazenando seu id
-	background.texID = loadTexture("../Textures/Backgrounds/Preview 3.png",imgWidth,imgHeight);
-	background.pos = vec3(400,300,0);
-	background.dimensions = vec3(imgWidth*0.5,imgHeight*0.5,1.0);
-	background.angle = 0.0;
+	texID = loadTexture("../Textures/Backgrounds/Preview 3.png",imgWidth,imgHeight);
+	background = initializeSprite(texID, vec3(imgWidth*0.4,imgHeight*0.4,1.0),vec3(400,300,0));
 
 	glUseProgram(shaderID);
 
@@ -170,6 +178,8 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	character.iAnimation = 1; //Explicar isso semana que vem
+
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
@@ -180,15 +190,14 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindVertexArray(background.VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, background.texID); //conectando com o buffer de textura que será usado no draw
-		// Primeiro Sprite - vamos depois adaptar a função para drawSprite
-		drawTriangle(shaderID, background.VAO, background.pos, background.dimensions);
+		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"), 0.0, 0.0); // enviando cor para variável uniform offsetTex
+		// Primeiro Sprite 
+		drawSprite(shaderID, background);
+		
+		//Depois, o personagem e outros itens
+		updateSprite(shaderID,character);
+		drawSprite(shaderID, character);
 
-		glBindVertexArray(character.VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, character.texID); //conectando com o buffer de textura que será usado no draw
-		// Primeiro Sprite - vamos depois adaptar a função para drawSprite
-		drawTriangle(shaderID, character.VAO, character.pos, character.dimensions);
 
 		glBindVertexArray(0); // Desconectando o buffer de geometria
 
@@ -321,23 +330,33 @@ int setupGeometry()
 	return VAO;
 }
 
-//Inicialização da geometria de um sprite
-int setupSprite()
+Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations, int nFrames, float angle)
 {
-	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
-	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
-	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
-	// Pode ser arazenado em um VBO único ou em VBOs separados
+	Sprite sprite;
+
+	sprite.texID = texID;
+	sprite.dimensions.x = dimensions.x / nFrames;
+	sprite.dimensions.y = dimensions.y / nAnimations;
+	sprite.pos = position;
+	sprite.nAnimations = nAnimations;
+	sprite.nFrames = nFrames;
+	sprite.angle = angle;
+	sprite.iFrame = 0;
+	sprite.iAnimation = 0;
+
+	sprite.ds = 1.0 / (float) nFrames;
+	sprite.dt = 1.0 / (float) nAnimations;
+
 	GLfloat vertices[] = {
 		// x    y    z   s    t 
 		// T0
-		-0.5,  0.5, 0.0, 0.0, 1.0,    // v0
-		-0.5, -0.5, 0.0, 0.0, 0.0,    // v1
-		 0.5,  0.5, 0.0, 1.0, 1.0, 	  // v2
+		-0.5,  0.5, 0.0, 0.0, sprite.dt,        // v0
+		-0.5, -0.5, 0.0, 0.0, 0.0,              // v1
+		 0.5,  0.5, 0.0, sprite.ds, sprite.dt, 	// v2
 		// T1
-		-0.5, -0.5, 0.0, 0.0, 0.0,    // v1
-		 0.5,  0.5, 0.0, 1.0, 1.0, 	  // v2
-		 0.5, -0.5, 0.0, 1.0, 0.0  	  // v3
+		-0.5, -0.5, 0.0, 0.0, 0.0,              // v1
+		 0.5,  0.5, 0.0, sprite.ds, sprite.dt, 	// v2
+		 0.5, -0.5, 0.0, sprite.ds, 0.0  	    // v3
 	};
 
 	GLuint VBO, VAO;
@@ -353,14 +372,8 @@ int setupSprite()
 	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
 	// e os ponteiros para os atributos
 	glBindVertexArray(VAO);
-	// Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo), indicando:
-	//  Localização no shader * (a localização dos atributos devem ser correspondentes no layout especificado no vertex shader)
-	//  Numero de valores que o atributo tem (por ex, 3 coordenadas xyz)
-	//  Tipo do dado
-	//  Se está normalizado (entre zero e um)
-	//  Tamanho em bytes
-	//  Deslocamento a partir do byte zero
-
+	// Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo)
+	
 	//Atributo posição - coord x, y, z - 3 valores
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
 	glEnableVertexAttribArray(0);
@@ -376,7 +389,50 @@ int setupSprite()
 	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
 	glBindVertexArray(0);
 
-	return VAO;
+	sprite.VAO = VAO;
+
+    return sprite;
+}
+
+void drawSprite(GLuint shaderID, Sprite &sprite)
+{
+	glBindVertexArray(sprite.VAO); // Conectando ao buffer de geometria
+	glBindTexture(GL_TEXTURE_2D, sprite.texID); //conectando com o buffer de textura que será usado no draw
+
+	// Matriz de modelo: transformações na geometria (objeto)
+	mat4 model = mat4(1); // matriz identidade
+	// Translação
+	model = translate(model, sprite.pos);
+	// Rotação
+	model = rotate(model, radians(sprite.angle), vec3(0.0,0.0,1.0));
+	// Escala
+	model = scale(model, sprite.dimensions);
+	
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glBindVertexArray(0); // Desconectando ao buffer de geometria
+	glBindTexture(GL_TEXTURE_2D, 0); // Desconectando com o buffer de textura 
+
+}
+
+void updateSprite(GLuint shaderID, Sprite &sprite)
+{
+
+	// Incrementando o índice do frame apenas quando fechar a taxa de FPS desejada
+	float now = glfwGetTime();
+	float dt = now - lastTime;
+	if (dt >= 1 / FPS)
+	{
+		sprite.iFrame = (sprite.iFrame + 1) % sprite.nFrames; //incrementando ciclicamente o indice do Frame
+		lastTime = now;
+	}
+	
+	vec2 offsetTex;
+	offsetTex.s = sprite.iFrame * sprite.ds;
+	offsetTex.t = sprite.iAnimation * sprite.dt;
+	glUniform2f(glGetUniformLocation(shaderID, "offsetTex"), offsetTex.s, offsetTex.t); // enviando cor para variável uniform offsetTex
 }
 
 GLuint loadTexture(string filePath, int &width, int &height)
@@ -391,8 +447,8 @@ GLuint loadTexture(string filePath, int &width, int &height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// Carregamento da imagem usando a função stbi_load da biblioteca stb_image
 	int nrChannels;
