@@ -1,7 +1,7 @@
 # Introdução aos Sprites
-
-![image](https://github.com/user-attachments/assets/dba6f45e-2d4f-483b-9623-35e719154321)
-Fonte: autoral
+<p align="center">
+<img src = "https://github.com/user-attachments/assets/dba6f45e-2d4f-483b-9623-35e719154321" alt="Exemplo cena com sprites" />
+</p> <p align = "center"><em>Exemplo de cena composta de vários sprites. Fonte: autoral Assets: Freepik</em></p>
 
 No contexto do desenvolvimento de jogos, **sprites** são imagens que são mapeadas como textura em uma geometria simples (geralmente retangular), utilizadas para representar personagens, objetos ou elementos visuais dentro de uma cena. Um sprite é desenhado em um plano cartesiano e pode ser manipulado para aplicar transformações como translação, rotação e escala.
 Código-fonte de apoio: link aqui
@@ -14,10 +14,9 @@ Os sprites em nosso exemplo são representados por uma `struct Sprite`, que cont
 
 - **VAO (Vertex Array Object)**: O identificador do buffer de geometria, que representa um quadrilátero centrado na origem do sistema cartesiano, com suas coordenadas locais e dimensões 1x1. Nesse VAO temos os ponteiros para os atributos do vértice **posição** e **coordenadas de textura**.
 
-![image](https://github.com/user-attachments/assets/deba4042-adbc-4ea0-859a-848704c809ee)
-Fonte: autora. Sprite obtida do itch.io (https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32)
-
-
+<p align="center">
+<img src = "https://github.com/user-attachments/assets/deba4042-adbc-4ea0-859a-848704c809ee" alt="Mapeamento entre sistemas de coordenadas em um sprite." />
+</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas em um sprite. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
 
 - **texID**: O identificador da textura associada ao sprite, que conectamos antes de fazer a chamada de desenho.
 - **Transformações**: Variáveis para armazenar:
