@@ -283,10 +283,6 @@ drawSprite(shaderID, background);
 drawSprite(shaderID, character)
 ```
 
-## Recursos Úteis
-
-- **Repositório de Texturas**: Para encontrar texturas gratuitas para seus sprites, você pode visitar [CraftPix](https://craftpix.net/freebies/).
-
 ## Referências
 
 1. [LearnOpenGL: Coordinate Systems](https://learnopengl.com/Getting-started/Coordinate-Systems)  
