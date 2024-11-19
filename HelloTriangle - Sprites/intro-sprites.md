@@ -21,7 +21,7 @@ Os sprites em nosso exemplo são representados por uma `struct Sprite`, que cont
 
 <p align="center">
 <img src = "https://github.com/user-attachments/assets/deba4042-adbc-4ea0-859a-848704c809ee" alt="Mapeamento entre sistemas de coordenadas em um sprite." width="800" />
-</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas em um sprite. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
+</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas em um sprite. Fonte: autoral <a href="#creditos">Créditos dos Assets</a></em></p>
 
 - **texID**: O identificador da textura associada ao sprite, que conectamos antes de fazer a chamada de desenho.
 - **Transformações**: Variáveis para armazenar:
@@ -169,7 +169,7 @@ Já a posição, que foi colocada de forma **hardcoded** neste exemplo: `vec3(40
 
 <p align="center">
 <img src = "https://github.com/user-attachments/assets/3db38a08-05b5-4571-a3ba-87acd5bc839a" alt="Mapeamento entre sistemas de coordenadas da cena." width="800" />
-</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas de mundo e de tela. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
+</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas de mundo e de tela. Fonte: autoral <a href="#creditos">Créditos dos Assets</a></em></p>
 
 ## Exemplo de criação de cena: fundo e personagem
 
@@ -192,7 +192,7 @@ background = initializeSprite(texID, vec3(imgWidth*0.4,imgHeight*0.4,1.0),vec3(4
 
 <p align="center">
 <img src = "https://github.com/user-attachments/assets/13d6adcd-1a4c-41ba-b510-87c7fd427b26" alt="Render da cena com as sprites criadas." width="800" />
-</p> <p align = "center"><em>Render da cena com as sprites criadas. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32, https://craftpix.net/freebies</em>,</p>
+</p> <p align = "center"><em>Render da cena com as sprites criadas. Fonte: autoral <a href="#creditos">Créditos dos Assets</a></em>,</p>
 
 # Shaders para Renderização de Sprites
 
@@ -287,6 +287,11 @@ drawSprite(shaderID, character)
 
 - **Repositório de Texturas**: Para encontrar texturas gratuitas para seus sprites, você pode visitar [CraftPix](https://craftpix.net/freebies/).
 
+## Referências
+
+1. [LearnOpenGL: Coordinate Systems](https://learnopengl.com/Getting-started/Coordinate-Systems)  
+2. [LearnOpenGL: Textures](https://learnopengl.com/Getting-started/Textures)  
+3. [LearnOpenGL: Rendering Sprites](https://learnopengl.com/In-Practice/2D-Game/Rendering-Sprites)  
 
 <h2 id="creditos">Créditos dos assets utilizados</h2>
 
