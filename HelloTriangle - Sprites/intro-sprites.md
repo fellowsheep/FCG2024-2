@@ -4,8 +4,8 @@
 [Sprites.cpp - Código Fonte de Apoio](https://github.com/fellowsheep/FCG2024-2/blob/main/HelloTriangle%20-%20Sprites/Sprites.cpp)
 
 <p align="center">
-<img src = "https://github.com/user-attachments/assets/eb5856b1-3985-450f-8bc0-b2ed8a726e04" alt="Exemplo cena com sprites" width=800 />
-</p> <p align = "center"><em>Exemplo de cena composta de vários sprites. Fonte: autoral <a href="creditos">Créditos dos Assets</a></em></p>
+<img src = "https://github.com/user-attachments/assets/eb5856b1-3985-450f-8bc0-b2ed8a726e04" alt="Exemplo cena com sprites" width=400 />
+</p> <p align = "center"><em>Exemplo de cena composta de vários sprites. Fonte: autoral <a href="#creditos">Créditos dos Assets</a></em></p>
 
 
 
