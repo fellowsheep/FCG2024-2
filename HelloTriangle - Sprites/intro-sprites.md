@@ -170,6 +170,95 @@ Já a posição, que foi colocada de forma **hardcoded** neste exemplo: `vec3(40
 </p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas de mundo e de tela. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
 
 
+# Shaders para Renderização de Sprites
+
+## Vertex Shader
+
+O **Vertex Shader** transforma os vértices do sprite e envia as coordenadas de textura para o **Fragment Shader**.
+
+```glsl
+#version 400 // Mude para a versão de OpenGL que seu computador suporta, precisa ser no mínimo 330
+layout (location = 0) in vec3 position; // Posição dos vértices
+layout (location = 1) in vec2 texc;     // Coordenadas de textura
+
+uniform mat4 projection; // Matriz de projeção ortográfica
+uniform mat4 model;      // Matriz de transformações locais (modelo)
+
+out vec2 texCoord;       // Coordenadas de textura enviadas ao Fragment Shader
+
+void main() {
+    gl_Position = projection * model * vec4(position.x, position.y, position.z, 1.0);
+    texCoord = vec2(texc.s, 1.0 - texc.t); // Inverte o eixo Y da textura
+}
+```
+
+### Explicação
+
+1. **Entradas**:
+   - `position`: Contém as coordenadas dos vértices no espaço local.
+   - `texc`: Contém as coordenadas de textura associadas a cada vértice.
+2. **Uniforms**:
+   - `projection`: Matriz de projeção ortográfica que converte as coordenadas para o espaço da tela.
+   - `model`: Matriz que aplica transformações como translação, rotação e escala ao sprite.
+3. **Saídas**:
+   - `texCoord`: Coordenadas de textura ajustadas para o **Fragment Shader**.
+4. **Função Principal**:
+   - `gl_Position`: Multiplica as coordenadas locais dos vértices (`position`) pela matriz de projeção (`projection`) e pela matriz de modelo (`model`), transformando-as para o espaço de tela.
+   - `texCoord`: recebe o atributo coordenada de textura do vértice e ajusta em y, para a imagem não ficar invertida com nosso mapeamento feito
+---
+
+## Fragment Shader
+
+O **Fragment Shader** aplica o mapeamento da textura ao sprite.
+
+```glsl
+#version 400
+in vec2 texCoord;           // Coordenadas de textura recebidas do Vertex Shader
+uniform sampler2D texBuff;  // Textura associada ao sprite
+
+out vec4 color;             // Cor final do fragmento
+
+void main() {
+    color = texture(texBuff, texCoord); // Busca o texel correspondente a texCoord em texBuff
+}
+```
+
+### Explicação
+
+1. **Entradas**:
+   - `texCoord`: Coordenadas de textura interpoladas entre os vértices.
+2. **Uniform**:
+   - `texBuff`: Representa a textura 2D associada ao sprite.
+3. **Saída**:
+   - `color`: Define a cor final do fragmento (pixel).
+4. **Função Principal**:
+   - `texture(texBuff, texCoord )`: Obtém a cor do pixel correspondente na textura
+   - O resultado é atribuído à variável `color`, determinando a cor final do fragmento na tela.
+
+---
+
+## Chamada de desenho
+
+Para fazer a chamada de desenho das sprites, precisamos:
+1. Habilitar o shader que será usado, a partir do comando `glUseShader(shaderID)`
+
+2. Habilitar o primeiro buffer de textura da OpenGL (`GL_TEXTURE_0`) e associar a variável de nome `texBuff` para ser reconhecida como a variável que receberá o buffer da textura que será contectada (`glBindVertexArray(sprite.VAO)`) à textura do sprite que será desenhado.
+```cpp
+//Ativando o primeiro buffer de textura da OpenGL
+glActiveTexture(GL_TEXTURE0);
+// Enviar a informação de qual variável armazenará o buffer da textura
+glUniform1i(glGetUniformLocation(shaderID, "texBuff"), 0);
+```
+No nosso programa de exemplo, este trecho pode ser executado ainda antes do loop, pois não usaremos outros shaders diferentes nem habilitaremos novos buffers de textura.
+
+3. Dentro do loop da aplicação, após as limpezas dos buffers, chamar, em ordem do que vem mais atrás até o que vem mais à frente, o desenho dos sprites.
+```cpp
+// Primeiro Sprite - fundo (ou as várias camadas do fundo, se houver)
+drawSprite(shaderID, background);
+//Depois, o personagem e outros itens, se houver
+drawSprite(shaderID, character)
+```
+
 ## Recursos Úteis
 
 - **Repositório de Texturas**: Para encontrar texturas gratuitas para seus sprites, você pode visitar [CraftPix](https://craftpix.net/freebies/).
