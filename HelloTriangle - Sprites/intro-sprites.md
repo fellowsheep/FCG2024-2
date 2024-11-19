@@ -165,6 +165,10 @@ A função loadTexture (estudada nas aulas de mapeamento de textura), além de r
 
 Já a posição, que foi colocada de forma **hardcoded** neste exemplo: `vec3(400,100,0)`, corresponde exatamente à contagem de pixels em `x` e `y` da janela da aplicação (que foi mapeada como uma única _viewport_). Lembrando que neste nosso mapeamento, a `origem` do sistema de coordenadas de tela está no canto inferior esquerdo da tela.
 
+<p align="center">
+<img src = "https://github.com/user-attachments/assets/3db38a08-05b5-4571-a3ba-87acd5bc839a" alt="Mapeamento entre sistemas de coordenadas da cena." width="800" />
+</p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas de mundo e de tela. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
+
 
 ## Recursos Úteis
 
