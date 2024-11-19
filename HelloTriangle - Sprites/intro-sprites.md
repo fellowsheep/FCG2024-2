@@ -169,6 +169,26 @@ Já a posição, que foi colocada de forma **hardcoded** neste exemplo: `vec3(40
 <img src = "https://github.com/user-attachments/assets/3db38a08-05b5-4571-a3ba-87acd5bc839a" alt="Mapeamento entre sistemas de coordenadas da cena." width="800" />
 </p> <p align = "center"><em>Mapeamento entre sistemas de coordenadas de mundo e de tela. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32</em></p>
 
+## Exemplo de criação de cena: fundo e personagem
+
+Agora que temos a `struct Sprite`, podemos criar todos os objetos visuais da cena que serão renderizados como tal.
+No trecho de código abaixo, criamos sprites `background` para o fundo e `character` para nossa personagem. Diferente da seção anterior, que usamos as dimensões originais da imagem como dimensões finais do sprite, aqui fizemos um ajuste para que nossos assets ficassem mais proporcionais e coubessem na cena. Pra isso, aumentamos a escala (manualmente mesmo, na criação) da personagem em `3x` e diminuimos a escala do fundo para `40%` da escala original.
+```cpp
+//Criação dos sprites - objetos da cena
+Sprite background, character;
+int imgWidth, imgHeight, texID;
+
+// Carregando uma textura do personagem e armazenando seu id
+texID = loadTexture("../Textures/Characters/Female 23.png",imgWidth,imgHeight);
+character = initializeSprite(texID, vec3(imgWidth*3,imgHeight*3,1.0),vec3(400,100,0)); //fator de escala 3 aplicado diretamente às dimensões
+
+texID = loadTexture("../Textures/Backgrounds/Preview 3.png",imgWidth,imgHeight);
+background = initializeSprite(texID, vec3(imgWidth*0.4,imgHeight*0.4,1.0),vec3(400,300,0)); //fator de escala 0.4 aplicado diretamente às dimensões
+```
+> ⚠ **Aviso:** O ideal é ter os assets com a resolução correta que será usada no jogo (correta ou com uma pequena margem de aumento). Escalar imagens pode causar artefatos indesejados!
+
+
+
 
 # Shaders para Renderização de Sprites
 
