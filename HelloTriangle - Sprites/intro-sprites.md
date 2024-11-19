@@ -4,8 +4,10 @@
 [Sprites.cpp - Código Fonte de Apoio](https://github.com/fellowsheep/FCG2024-2/blob/main/HelloTriangle%20-%20Sprites/Sprites.cpp)
 
 <p align="center">
-<img src = "https://github.com/user-attachments/assets/dba6f45e-2d4f-483b-9623-35e719154321" alt="Exemplo cena com sprites" />
-</p> <p align = "center"><em>Exemplo de cena composta de vários sprites. Fonte: autoral Assets: Freepik</em></p>
+<img src = "https://github.com/user-attachments/assets/eb5856b1-3985-450f-8bc0-b2ed8a726e04" alt="Exemplo cena com sprites" width=800 />
+</p> <p align = "center"><em>Exemplo de cena composta de vários sprites. Fonte: autoral <a href="creditos">Créditos dos Assets</a></em></p>
+
+
 
 No contexto do desenvolvimento de jogos, **sprites** são imagens que são mapeadas como textura em uma geometria simples (geralmente retangular), utilizadas para representar personagens, objetos ou elementos visuais dentro de uma cena. Um sprite é desenhado em um plano cartesiano e pode ser manipulado para aplicar transformações como translação, rotação e escala.
 
@@ -285,4 +287,8 @@ drawSprite(shaderID, character)
 
 - **Repositório de Texturas**: Para encontrar texturas gratuitas para seus sprites, você pode visitar [CraftPix](https://craftpix.net/freebies/).
 
-Para mais exemplos e explicações detalhadas, consulte o [diretório do projeto](https://github.com/fellowsheep/FCG2024-2/tree/main/HelloTriangle%20-%20Sprites).
+
+<h2 id="creditos">Créditos dos assets utilizados</h2>
+
+- Personagem: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32
+- Background: https://craftpix.net/freebies/free-crystal-cave-pixel-art-backgrounds/
