@@ -180,15 +180,17 @@ int imgWidth, imgHeight, texID;
 
 // Carregando uma textura do personagem e armazenando seu id
 texID = loadTexture("../Textures/Characters/Female 23.png",imgWidth,imgHeight);
-character = initializeSprite(texID, vec3(imgWidth*3,imgHeight*3,1.0),vec3(400,100,0)); //fator de escala 3 aplicado diretamente às dimensões
+character = initializeSprite(texID, vec3(imgWidth*3,imgHeight*3,1.0),vec3(400,100,0)); // fator de escala 3 aplicado diretamente às dimensões
 
 texID = loadTexture("../Textures/Backgrounds/Preview 3.png",imgWidth,imgHeight);
-background = initializeSprite(texID, vec3(imgWidth*0.4,imgHeight*0.4,1.0),vec3(400,300,0)); //fator de escala 0.4 aplicado diretamente às dimensões
+background = initializeSprite(texID, vec3(imgWidth*0.4,imgHeight*0.4,1.0),vec3(400,300,0)); // fator de escala 0.4 aplicado diretamente às dimensões
+				 							    // note que o fundo está posicionado no centro da janela 800x600 px
 ```
 > ⚠ **Aviso:** O ideal é ter os assets com a resolução correta que será usada no jogo (correta ou com uma pequena margem de aumento). Escalar imagens pode causar artefatos indesejados!
 
-
-
+<p align="center">
+<img src = "https://github.com/user-attachments/assets/13d6adcd-1a4c-41ba-b510-87c7fd427b26" alt="Render da cena com as sprites criadas." width="800" />
+</p> <p align = "center"><em>Render da cena com as sprites criadas. Fonte: autoral Assets: https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32, https://craftpix.net/freebies</em>,</p>
 
 # Shaders para Renderização de Sprites
 
