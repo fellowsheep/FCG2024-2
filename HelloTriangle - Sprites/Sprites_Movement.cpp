@@ -42,7 +42,8 @@ struct Sprite
 	int nAnimations, nFrames;
 	int iAnimation, iFrame;
 	float ds, dt;
-
+	//Para a movimentação do sprite
+	float vel;
 };
 
 // Protótipo da função de callback de teclado
@@ -52,12 +53,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 int setupShader();
 int setupGeometry();
 int setupSprite();
-Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations=1, int nFrames=1, float angle=0.0);
+Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations=1, int nFrames=1, float vel = 1.5, float angle=0.0);
 GLuint loadTexture(string filePath, int &width, int &height);
 
 void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, float angle=0.0f, vec3 color = vec3(0,0,0), vec3 axis = (vec3(0.0, 0.0, 1.0)));
 void drawSprite(GLuint shaderID, Sprite &sprite);
 void updateSprite(GLuint shaderID, Sprite &sprite);
+void moveSprite(GLuint shaderID, Sprite &sprite);
 
 
 
@@ -67,6 +69,10 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 // Variáveis globais
 float FPS = 12.0f;
 float lastTime = 0;
+bool keys[1024];
+
+
+enum sprites_states { IDLE=1, MOVING_LEFT, MOVING_RIGHT };
 
 
 // Código fonte do Vertex Shader (em GLSL): ainda hardcoded
@@ -133,6 +139,13 @@ int main()
 	cout << "Renderer: " << renderer << endl;
 	cout << "OpenGL version supported " << version << endl;
 
+	//--------------------------------
+	// Inicializando o array de controle das teclas
+	for (int i = 0; i < 1024; i++)
+	{
+		keys[i] = false;
+	}
+
 	// Definindo as dimensões da viewport com as mesmas dimensões da janela da aplicação
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -180,7 +193,7 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	character.iAnimation = 1; //Explicar isso semana que vem
+	character.iAnimation = IDLE; //Explicar isso semana que vem
 
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
@@ -197,6 +210,7 @@ int main()
 		drawSprite(shaderID, background);
 		
 		//Depois, o personagem e outros itens
+		moveSprite(shaderID, character);
 		updateSprite(shaderID,character);
 		drawSprite(shaderID, character);
 
@@ -220,6 +234,17 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	
+	if (action == GLFW_PRESS)
+	{
+		keys[key] = true;
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		keys[key] = false;
+
+	}
+		
 }
 
 // Esta função está basntante hardcoded - objetivo é compilar e "buildar" um programa de
@@ -332,7 +357,7 @@ int setupGeometry()
 	return VAO;
 }
 
-Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations, int nFrames, float angle)
+Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnimations, int nFrames, float vel, float angle)
 {
 	Sprite sprite;
 
@@ -345,6 +370,7 @@ Sprite initializeSprite(GLuint texID, vec3 dimensions, vec3 position, int nAnima
 	sprite.angle = angle;
 	sprite.iFrame = 0;
 	sprite.iAnimation = 0;
+	sprite.vel = vel;
 
 	sprite.ds = 1.0 / (float) nFrames;
 	sprite.dt = 1.0 / (float) nAnimations;
@@ -497,4 +523,26 @@ void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, f
 																								//  Chamada de desenho - drawcall
 																								//  Poligono Preenchido - GL_TRIANGLES
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void moveSprite(GLuint shaderID, Sprite &sprite)
+{
+	if (keys[GLFW_KEY_A] || keys[GLFW_KEY_LEFT])
+	{
+		sprite.pos.x -= sprite.vel;
+		sprite.iAnimation = MOVING_LEFT;
+	}
+
+	if (keys[GLFW_KEY_D] || keys[GLFW_KEY_RIGHT])
+	{
+		sprite.pos.x += sprite.vel;
+		sprite.iAnimation = MOVING_RIGHT;
+	}
+
+	if (!keys[GLFW_KEY_A] && !keys[GLFW_KEY_D] && !keys[GLFW_KEY_LEFT] && !keys[GLFW_KEY_RIGHT])
+	{
+		sprite.iAnimation = IDLE;
+	}
+
+
 }
