@@ -44,6 +44,8 @@ struct Sprite
 	float ds, dt;
 	// Para a movimentação do sprite
 	float vel;
+	// Para o cálculo da colisão (AABB - Axis Aligned Bounding Box)
+	vec2 PMax, PMin;
 };
 
 // Protótipo da função de callback de teclado
@@ -63,6 +65,8 @@ void moveSprite(GLuint shaderID, Sprite &sprite);
 
 void updateItems(GLuint shader, Sprite &sprite);
 void spawnItem(Sprite &sprite);
+void calculateAABB(Sprite &sprite);
+bool checkCollision(Sprite one, Sprite two);
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -72,6 +76,9 @@ float FPS = 12.0f;
 float lastTime = 0;
 bool keys[1024];
 GLuint itemsTexIDs[3];
+int lives = 3;
+float velItems = 1.5f;
+float lastSpawnX = 400.0;
 
 enum sprites_states
 {
@@ -165,6 +172,8 @@ int main()
 	// Criação dos sprites - objetos da cena
 	Sprite background, character;
 	vector<Sprite> items;
+	int score = 0;
+	bool gameover = false;
 	int imgWidth, imgHeight, texID;
 
 	// Carregando uma textura do personagem e armazenando seu id
@@ -211,8 +220,11 @@ int main()
 
 	character.iAnimation = IDLE; // Explicar isso semana que vem
 
+	cout << "Pontuacao = " << score << endl;
+	cout << "Nro de vidas = " << lives << endl;
+
 	// Loop da aplicação - "game loop"
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window) && !gameover)
 	{
 		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as funções de callback correspondentes
 		glfwPollEvents();
@@ -222,6 +234,22 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"), 0.0, 0.0); // enviando para variável uniform offsetTex
+		
+		//Checagem das colisões
+		calculateAABB(character); // Calcula (atualiza) o PMin e o PMax usados para testar a colisão
+		for (int i=0; i<items.size(); i++)
+		{
+			calculateAABB(items[i]);
+			if (checkCollision(character,items[i]))
+			{
+				spawnItem(items[i]);
+				score++;
+				cout << "Pontuacao = " << score << endl;
+				velItems += 0.1;
+			}
+		}
+		
+		
 		// Primeiro Sprite
 		drawSprite(shaderID, background);
 
@@ -238,6 +266,12 @@ int main()
 			updateItems(shaderID, items[i]);
 		}
 
+		if (lives <= 0)
+		{
+			gameover = true;
+			cout << "GAME OVER!" << endl;
+		}
+
 		glBindVertexArray(0); // Desconectando o buffer de geometria
 
 		// Troca os buffers da tela
@@ -246,6 +280,7 @@ int main()
 	// Pede pra OpenGL desalocar os buffers
 	// glDeleteVertexArrays(1, character.VAO);
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
+	if (!glfwWindowShouldClose(window)) glfwSetWindowShouldClose(window, GL_TRUE);
 	glfwTerminate();
 	return 0;
 }
@@ -567,9 +602,25 @@ void moveSprite(GLuint shaderID, Sprite &sprite)
 
 void spawnItem(Sprite &sprite)
 {
-	sprite.pos.x = rand() % (790 - 10 + 1) + 10;	// valor entre 10 e 790
-	sprite.pos.y = rand() % (5000 - 650 + 1) + 650; // valor entre 650 e 850
+	int max = lastSpawnX + 250;
+	if (max > 790) max = 790;
+	int min = lastSpawnX - 250;
+	if (min < 10) min = 10;
+	
+	sprite.pos.x = rand() % (max - min + 1) + min;	// valor entre 10 e 790
+	lastSpawnX = sprite.pos.x;
+	sprite.pos.y = rand() % (3000 - 650 + 1) + 650; // valor entre 650 e 850
 	sprite.texID = itemsTexIDs[rand() % 3];
+	sprite.vel = velItems;
+	int n = rand() % 3;
+	if (n == 1)
+	{
+		sprite.vel = sprite.vel + sprite.vel * 0.1;
+	}
+	else if (n == 2)
+	{
+		sprite.vel = sprite.vel - sprite.vel * 0.1;
+	}
 }
 
 void updateItems(GLuint shader, Sprite &sprite)
@@ -580,6 +631,29 @@ void updateItems(GLuint shader, Sprite &sprite)
 	}
 	else
 	{
+		lives--;
+		cout << "Oh no! Vidas: " << lives << endl;
 		spawnItem(sprite);
 	}
+}
+
+void calculateAABB(Sprite &sprite)
+{
+	sprite.PMin.x = sprite.pos.x - sprite.dimensions.x/2.0; 
+	sprite.PMin.y = sprite.pos.y - sprite.dimensions.y/2.0; 
+
+	sprite.PMax.x = sprite.pos.x + sprite.dimensions.x/2.0; 
+	sprite.PMax.y = sprite.pos.y + sprite.dimensions.y/2.0; 
+}
+
+bool checkCollision(Sprite one, Sprite two)
+{
+	// collision x-axis?
+    bool collisionX = one.PMax.x >= two.PMin.x &&
+        two.PMax.x >= one.PMin.x;
+    // collision y-axis?
+    bool collisionY = one.PMax.y>= two.PMin.y &&
+        two.PMax.y >= one.PMin.y;
+    // collision only if on both axes
+    return collisionX && collisionY;  
 }
